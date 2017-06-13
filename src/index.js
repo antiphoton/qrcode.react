@@ -45,6 +45,7 @@ class QRCode extends React.Component {
   };
 
   static propTypes = {
+    imageType: PropTypes.oneOf([undefined, 'image/png']),
     value: PropTypes.string.isRequired,
     size: PropTypes.number,
     level: PropTypes.oneOf(['L', 'M', 'Q', 'H']),
@@ -106,20 +107,105 @@ class QRCode extends React.Component {
             );
         });
       });
+
+      var imageType = this.props.imageType;
+      if (imageType) {
+        var dataUrl = canvas.toDataURL(imageType);
+        this.props.onGenerateImage(dataUrl);
+      }
     }
   }
 
   render() {
+    console.log(113);
+    var display = this.props.display;
+    var size = this.props.size;
     return (
       <canvas
-        style={{height: this.props.size, width: this.props.size}}
-        height={this.props.size}
-        width={this.props.size}
+        style={{
+          height: size,
+          width: size,
+          display,
+        }}
+        height={size}
+        width={size}
         ref={(ref: ?HTMLCanvasElement): ?HTMLCanvasElement =>
           this._canvas = ref}
       />
     );
   }
-}
+};
 
-module.exports = QRCode;
+const ConditionalImage = function ({
+  dataUrl,
+  size,
+}) {
+  const style = {
+    height: size,
+    width: size,
+  };
+  if (dataUrl) {
+    return (
+      <img
+        style={style}
+        src={dataUrl}
+      />
+    );
+  } else {
+    return (
+      <div
+        style={style}
+      >
+        正在加载
+        二维码
+      </div>
+    );
+  }
+};
+
+class QRCodeWrapper extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      dataUrl: null,
+    };
+  }
+  handleGenerateImage(dataUrl) {
+    if (this.props.imageType) {
+      this.setState({
+        dataUrl,
+      });
+    }
+  }
+  render() {
+    var imageType = this.props.imageType;
+    const size = this.props.size;
+    var qrCode = (
+      <QRCode
+        value={this.props.value}
+        size={size}
+        level={this.props.level}
+        bgColor={this.props.bgColor}
+        fgColor={this.props.fgColor}
+        display={imageType ? 'none' : 'inline'}
+        imageType={this.props.imageType}
+        onGenerateImage={(x) => this.handleGenerateImage(x)}
+      />
+    );
+    if (imageType) {
+      return (
+        <div>
+          {qrCode}
+          <ConditionalImage
+            size={size}
+            dataUrl={this.state.dataUrl}
+          />
+        </div>
+      );
+    } else {
+      return qrCode;
+    }
+  }
+};
+
+module.exports = QRCodeWrapper;
