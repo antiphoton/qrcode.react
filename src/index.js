@@ -117,7 +117,6 @@ class QRCode extends React.Component {
   }
 
   render() {
-    console.log(113);
     var display = this.props.display;
     var size = this.props.size;
     return (
